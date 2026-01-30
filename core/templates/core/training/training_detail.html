@@ -1,0 +1,63 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-body">
+        <h1 class="card-title">
+            {{ training.name }}
+            {% if user.is_staff %}
+            <a href="{% url 'training_update' training.id %}" class="btn btn-sm btn-outline-warning ms-2">Düzenle</a>
+            {% endif %}
+        </h1>
+        <p class="text-muted">
+            {% if training.is_active %}
+            <span class="badge bg-success">Aktif</span>
+            {% else %}
+            <span class="badge bg-secondary">Pasif</span>
+            {% endif %}
+        </p>
+        <p class="card-text">{{ training.description|default:"Açıklama yok." }}</p>
+        <hr>
+        <p><strong>Varsayılan Süre:</strong> {{ training.default_duration|default:"-" }} Gün/Saat</p>
+
+        <h4 class="mt-4 d-flex justify-content-between">
+            Eğitim Oturumları
+            {% if user.is_staff %}
+            <a href="{% url 'session_create' training.id %}" class="btn btn-sm btn-outline-success">Yeni Oturum Ekle</a>
+            {% endif %}
+        </h4>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tarih</th>
+                        <th>Eğitmen</th>
+                        <th>Ücret</th>
+                        {% if user.is_staff %}<th>İşlemler</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in training.trainingsession_set.all %}
+                    <tr>
+                        <td>{{ session.start_date }} - {{ session.end_date|default:"?" }}</td>
+                        <td>{{ session.instructor.get_full_name|default:session.instructor.username }}</td>
+                        <td>{{ session.price }} TL</td>
+                        {% if user.is_staff %}
+                        <td>
+                            <a href="{% url 'session_update' session.id %}"
+                                class="btn btn-sm btn-outline-warning">Düzenle</a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{% if user.is_staff %}4{% else %}3{% endif %}">Bu eğitim için planlanmış oturum
+                            yok.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>Kontrol Paneli</h1>
+        <p class="lead">Hoş geldiniz, {{ user.get_full_name|default:user.username }}.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Actions -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Hızlı İşlemler</div>
+            <div class="list-group list-group-flush">
+                <a href="{% url 'person_list' %}" class="list-group-item list-group-item-action">Kişi Listesi</a>
+                <a href="{% url 'training_list' %}" class="list-group-item list-group-item-action">Eğitimler</a>
+                {% if user.is_staff %}
+                <a href="{% url 'reports' %}"
+                    class="list-group-item list-group-item-action list-group-item-info">Raporlar</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Sections -->
+    <div class="col-md-8">
+        {% if teaching_sessions %}
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">Yaklaşan Eğitimleriniz (Eğitmen)</div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Eğitim</th>
+                            <th>Tarih</th>
+                            <th>Kayıtlı</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in teaching_sessions %}
+                        <tr>
+                            <td>{{ session.training.name }}</td>
+                            <td>{{ session.start_date }}</td>
+                            <td>{{ session.enrollment_set.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-body">
+                <p>Burada kişisel bildirimler, görevler veya diğer istatistikler yer alabilir.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

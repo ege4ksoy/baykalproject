@@ -1,0 +1,50 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Eğitim Listesi</h1>
+        <p class="lead">Aktif eğitim programlarımız.</p>
+        {% if user.is_staff %}
+        <a href="{% url 'training_create' %}" class="btn btn-success mb-3">Yeni Eğitim Ekle</a>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        <form class="d-flex" method="get">
+            <input class="form-control me-2" type="search" placeholder="Eğitim Ara..." aria-label="Search" name="q"
+                value="{{ search_query|default:'' }}">
+            <button class="btn btn-outline-success" type="submit">Ara</button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    {% for training in trainings %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ training.name }}</h5>
+                <p class="card-text">{{ training.description|truncatewords:20 }}</p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">{{ training.default_duration }} Gün/Saat</small>
+                    <div>
+                        {% if user.is_staff %}
+                        <a href="{% url 'training_update' training.id %}"
+                            class="btn btn-sm btn-outline-warning me-1">Düzenle</a>
+                        {% endif %}
+                        <a href="{% url 'training_detail' training.id %}" class="btn btn-primary">Detayları Gör</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-muted">
+                {{ training.trainingsession_set.count }} aktif oturum
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col">
+        <div class="alert alert-info">Henüz aktif eğitim bulunmamaktadır.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1>Raporlar</h1>
+        <p class="lead">Yönetici özet raporları.</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-header">Toplam Gelir</div>
+            <div class="card-body">
+                <h1 class="card-title">{{ total_revenue }} TL</h1>
+                <p class="card-text">Tüm zamanların toplam ödeme tutarı.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-header">Toplam Aktif Öğrenci</div>
+            <div class="card-body">
+                <h1 class="card-title">{{ total_students }}</h1>
+                <p class="card-text">Sistemdeki aktif kişi sayısı.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">Eğitim Bazlı Kayıt Sayıları</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Eğitim Adı</th>
+                            <th>Toplam Kayıt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for training in enrollment_by_training %}
+                        <tr>
+                            <td>{{ training.name }}</td>
+                            <td>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar" role="progressbar"
+                                        style="width: {{ training.total_students }}0%;"
+                                        aria-valuenow="{{ training.total_students }}" aria-valuemin="0"
+                                        aria-valuemax="100">
+                                        {{ training.total_students }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
