@@ -1,11 +1,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
-from .models import Person, Document, Meeting, Enrollment, TrainingSession, Training
-from .forms import MeetingForm, EnrollmentForm, DocumentForm, TrainingForm, TrainingSessionForm, PersonForm
+from .models import Person, Document, Meeting, Enrollment, TrainingSession, Training, Lead
+from .forms import MeetingForm, EnrollmentForm, DocumentForm, TrainingForm, TrainingSessionForm, PersonForm, LeadForm
 from datetime import date
 from django.db.models import Sum, Count
 
+from .services import LeadQueryService
 from django.db.models import Q
 
 def person_list(request):
@@ -21,16 +22,44 @@ def person_list(request):
         people = Person.objects.filter(is_active=True).order_by('-created_at')
     return render(request, 'core/person/person_list.html', {'people': people, 'search_query': query})
 
+@staff_member_required
+def lead_list(request):
+    # Base queryset
+    leads = Lead.objects.all().order_by('-created_at')
+    
+    # Use Service for filtering
+    leads = LeadQueryService.get_filtered_leads(leads, request.GET)
+
+    # Context for Filters
+    context = {
+        'leads': leads,
+        'search_query': request.GET.get('q', ''),
+        '# Filter Choices from Model': None,
+        'contact_source_choices': Lead.CONTACT_SOURCE_CHOICES,
+        'lead_stage_choices': Lead.LEAD_STAGE_CHOICES,
+        'education_background_choices': Lead.EDUCATION_BACKGROUND_CHOICES,
+        'interest_type_choices': Lead.INTEREST_TYPE_CHOICES,
+        
+        # Current Applied Filters (for keeping dropdowns selected)
+        'current_contact_source': request.GET.get('contact_source', ''),
+        'current_lead_stage': request.GET.get('lead_stage', ''),
+        'current_education_background': request.GET.get('education_background', ''),
+        'current_interest_type': request.GET.get('interest_type', ''),
+        'current_follow_up_today': request.GET.get('follow_up_today', ''),
+        'today': date.today(),
+        "follow_up_today_active": request.GET.get("follow_up_today") == "yes",
+    }
+    
+    return render(request, 'core/lead/lead_list.html', context)
+
 def person_detail(request, pk):
     person = get_object_or_404(Person, pk=pk)
     enrollments = person.enrollment_set.all()
     documents = person.document_set.all()
-    meetings = person.meeting_set.all().order_by('-meeting_date')
     return render(request, 'core/person/person_detail.html', {
         'person': person,
         'enrollments': enrollments,
         'documents': documents,
-        'meetings': meetings
     })
 
 
@@ -200,31 +229,44 @@ def session_update(request, training_id):
     return render(request, 'core/session/session_form.html', {'form': form, 'training': training})
 
 @staff_member_required
-def meeting_create(request, person_id):
-    person = get_object_or_404(Person, pk=person_id)
+def lead_create(request):
     if request.method == 'POST':
-        form = MeetingForm(request.POST)
+        form = LeadForm(request.POST)
         if form.is_valid():
-            meeting = form.save(commit=False)
-            meeting.person = person
-            meeting.user = request.user
-            meeting.save()
-            return redirect('person_detail', pk=person.id)
+            lead = form.save()
+            return redirect('lead_detail', pk=lead.pk)
     else:
-        form = MeetingForm()
-    return render(request, 'core/meeting/meeting_form.html', {'form': form, 'person': person})
+        form = LeadForm()
+    return render(request, 'core/lead/lead_form.html', {'form': form, 'title': 'Yeni Lead Ekle'})
 
 @staff_member_required
-def person_update(request, pk):
-    person = get_object_or_404(Person, pk=pk)
+def lead_detail(request, pk):
+    lead = get_object_or_404(Lead, pk=pk)
+    meetings = lead.meeting_set.all().order_by('-meeting_date')
+    return render(request, 'core/lead/lead_detail.html', {
+        'lead': lead,
+        'meetings': meetings
+    })
+
+def lead_detail(request, pk):
+    lead = get_object_or_404(Lead, pk=pk)
+    meetings = lead.meeting_set.all().order_by('-meeting_date')
+    return render(request, 'core/lead/lead_detail.html', {
+        'lead': lead,
+        'meetings': meetings
+    })
+
+@staff_member_required
+def lead_update(request, pk):
+    lead = get_object_or_404(Lead, pk=pk)
     if request.method == 'POST':
-        form = PersonForm(request.POST, request.FILES, instance=person)
+        form = LeadForm(request.POST, instance=lead)
         if form.is_valid():
             form.save()
-            return redirect('person_detail', pk=person.id)
+            return redirect('lead_detail', pk=lead.pk)
     else:
-        form = PersonForm(instance=person)
-    return render(request, 'core/person/person_form.html', {'form': form, 'title': 'Kişi Düzenle'})
+        form = LeadForm(instance=lead)
+    return render(request, 'core/lead/lead_form.html', {'form': form, 'title': 'Lead Düzenle'})
 
 @staff_member_required
 def delete_person(request, pk):
@@ -247,6 +289,21 @@ def training_update(request, pk):
     return render(request, 'core/training/training_form.html', {'form': form, 'title': 'Eğitim Düzenle'})
 
 @staff_member_required
+def meeting_create(request, lead_id):
+    lead = get_object_or_404(Lead, pk=lead_id)
+    if request.method == 'POST':
+        form = MeetingForm(request.POST)
+        if form.is_valid():
+            meeting = form.save(commit=False)
+            meeting.lead = lead
+            meeting.user = request.user
+            meeting.save()
+            return redirect('lead_detail', pk=lead.id)
+    else:
+        form = MeetingForm()
+    return render(request, 'core/meeting/meeting_form.html', {'form': form, 'lead': lead})
+
+@staff_member_required
 def session_update(request, pk):
     session = get_object_or_404(TrainingSession, pk=pk)
     if request.method == 'POST':
@@ -265,18 +322,18 @@ def meeting_update(request, pk):
         form = MeetingForm(request.POST, instance=meeting)
         if form.is_valid():
             form.save()
-            return redirect('person_detail', pk=meeting.person.id)
+            return redirect('lead_detail', pk=meeting.lead.id)
     else:
         form = MeetingForm(instance=meeting)
-    return render(request, 'core/meeting/meeting_form.html', {'form': form, 'person': meeting.person})
+    return render(request, 'core/meeting/meeting_form.html', {'form': form, 'lead': meeting.lead})
 
 @staff_member_required
 def delete_meeting(request, pk):
     meeting = get_object_or_404(Meeting, pk=pk)
-    person_id = meeting.person.id
+    lead_id = meeting.lead.id
     if request.method == 'POST':
         meeting.delete()
-        return redirect('person_detail', pk=person_id)
+        return redirect('lead_detail', pk=lead_id)
     return render(request, 'core/confirm_delete.html', {'object': meeting, 'title': 'Toplantı Sil'})
 
 @staff_member_required
@@ -300,14 +357,3 @@ def delete_document(request, pk):
         return redirect('person_detail', pk=person_id)
     return render(request, 'core/confirm_delete.html', {'object': document, 'title': 'Belge Sil'})
 
-@staff_member_required
-def meeting_update(request, person_id):
-    person = get_object_or_404(Person, pk=person_id)
-    if request.method == 'POST':
-        form = MeetingForm(request.POST, instance=person)
-        if form.is_valid():
-            form.save()
-            return redirect('person_detail', pk=person.id)
-    else:
-        form = MeetingForm(instance=person)
-    return render(request, 'core/meeting/meeting_form.html', {'form': form, 'person': person})

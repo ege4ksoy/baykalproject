@@ -1,0 +1,114 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ title }}</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <h5 class="mb-3">Temel Bilgiler</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">İsim</label>
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Soyisim</label>
+                            {{ form.last_name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Telefon</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Şehir</label>
+                            {{ form.city }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Instagram</label>
+                            {{ form.instagram_username }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Meslek</label>
+                            {{ form.profession }}
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3 mt-3">Lead Detayları</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Kaynak</label>
+                            {{ form.contact_source }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Eğitim Durumu</label>
+                            {{ form.education_background }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">İlgi Tipi</label>
+                            {{ form.interest_type }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Durum</label>
+                            {{ form.lead_stage }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Sonraki Arama</label>
+                            {{ form.next_follow_up }}
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3 mt-3">Eğitim İlgisi</h5>
+                    <div class="mb-3">
+                        <label class="form-label">İlgilendiği Eğitimler</label>
+                        {{ form.interested_trainings }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Potansiyel Eğitimler</label>
+                        {{ form.potential_trainings }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notlar</label>
+                        {{ form.notes }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                        {% if form.instance.pk %}
+                        <a href="{% url 'lead_detail' form.instance.pk %}" class="btn btn-secondary">İptal</a>
+                        {% else %}
+                        <a href="{% url 'lead_list' %}" class="btn btn-secondary">İptal</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('input, select, textarea').forEach(function (input) {
+        if (input.type !== 'checkbox' && input.type !== 'radio') {
+            input.classList.add('form-control');
+            if (input.tagName === 'SELECT') {
+                input.classList.add('form-select');
+                input.classList.remove('form-control');
+            }
+        } else if (input.type === 'checkbox') {
+            input.classList.add('form-check-input');
+            input.parentElement.classList.add('form-check');
+            input.parentElement.classList.add('form-check-inline');
+        }
+    });
+</script>
+{% endblock %}

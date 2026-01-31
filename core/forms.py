@@ -1,5 +1,22 @@
 from django import forms
-from .models import Document, Enrollment, Training, TrainingSession, Person, Meeting
+from .models import Document, Enrollment, Training, TrainingSession, Person, Meeting, Lead
+
+class LeadForm(forms.ModelForm):
+    class Meta:
+        model = Lead
+        fields = [
+            'first_name', 'last_name', 'email', 'phone', 'city', 
+            'instagram_username', 'profession',
+            'contact_source', 'education_background', 'interest_type', 'lead_stage',
+            'interested_trainings', 'potential_trainings',
+            'next_follow_up', 'notes'
+        ]
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 3}),
+            'next_follow_up': forms.DateInput(attrs={'type': 'date'}),
+            'interested_trainings': forms.CheckboxSelectMultiple(),
+            'potential_trainings': forms.CheckboxSelectMultiple(),
+        }
 
 class PersonForm(forms.ModelForm):
     class Meta:

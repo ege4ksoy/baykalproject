@@ -1,0 +1,116 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>
+            {{ lead.first_name }} {{ lead.last_name }}
+            <span class="badge bg-secondary fs-6 align-middle">{{ lead.get_lead_stage_display }}</span>
+        </h1>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'lead_update' lead.pk %}" class="btn btn-warning">Düzenle</a>
+        <a href="{% url 'lead_list' %}" class="btn btn-outline-secondary">Listeye Dön</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Info -->
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Kişisel Bilgiler</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item"><strong>Telefon:</strong> {{ lead.phone|default:"-" }}</li>
+                <li class="list-group-item"><strong>Email:</strong> {{ lead.email|default:"-" }}</li>
+                <li class="list-group-item"><strong>Instagram:</strong> {{ lead.instagram_username|default:"-" }}</li>
+                <li class="list-group-item"><strong>Şehir:</strong> {{ lead.city|default:"-" }}</li>
+                <li class="list-group-item"><strong>Meslek:</strong> {{ lead.profession|default:"-" }}</li>
+                <li class="list-group-item"><strong>Kaynak:</strong> {{ lead.get_contact_source_display }}</li>
+                <li class="list-group-item"><strong>Eğitim:</strong> {{ lead.get_education_background_display }}</li>
+                <li class="list-group-item"><strong>İlgi:</strong> {{ lead.get_interest_type_display }}</li>
+            </ul>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">Takip</div>
+            <div class="card-body">
+                <p><strong>Sonraki Arama:</strong>
+                    {% if lead.next_follow_up %}
+                    {{ lead.next_follow_up|date:"d M Y" }}
+                    {% else %}
+                    -
+                    {% endif %}
+                </p>
+                <p><strong>Notlar:</strong><br>
+                    {{ lead.notes|linebreaks|default:"-" }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Meetings & Trainings -->
+    <div class="col-md-8">
+
+        <!-- Trainings -->
+        <div class="card mb-4">
+            <div class="card-header">İlgilendiği Eğitimler</div>
+            <div class="card-body">
+                {% if lead.interested_trainings.all %}
+                <p><strong>İlgili:</strong>
+                    {% for t in lead.interested_trainings.all %}
+                    <span class="badge bg-primary">{{ t.name }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+
+                {% if lead.potential_trainings.all %}
+                <p><strong>Potansiyel:</strong>
+                    {% for t in lead.potential_trainings.all %}
+                    <span class="badge bg-secondary">{{ t.name }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+
+                {% if not lead.interested_trainings.all and not lead.potential_trainings.all %}
+                <p class="text-muted">Eğitim bilgisi girilmemiş.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Meetings -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Görüşme Geçmişi</span>
+                <a href="{% url 'meeting_create' lead.id %}" class="btn btn-sm btn-success">+ Görüşme Ekle</a>
+            </div>
+            <div class="card-body">
+                {% if meetings %}
+                <div class="list-group">
+                    {% for meeting in meetings %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ meeting.meeting_date|date:"d M Y H:i" }}</h5>
+                            <small>{{ meeting.user.username }}</small>
+                        </div>
+                        <p class="mb-1">{{ meeting.summary|linebreaks }}</p>
+                        {% if meeting.private_note %}
+                        <small class="text-muted"><strong>Özel Not:</strong> {{ meeting.private_note }}</small>
+                        {% endif %}
+                        <div class="mt-2">
+                            <a href="{% url 'meeting_update' meeting.id %}"
+                                class="btn btn-sm btn-outline-primary py-0">Düzenle</a>
+                            <a href="{% url 'delete_meeting' meeting.id %}"
+                                class="btn btn-sm btn-outline-danger py-0">Sil</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-muted my-3">Henüz görüşme kaydı yok.</p>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

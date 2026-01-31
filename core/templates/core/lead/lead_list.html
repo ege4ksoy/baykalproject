@@ -1,0 +1,199 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h1>Potansiyel Müşteriler (Leads)</h1>
+            <p class="lead">Detaylı filtreleme ve takip listesi.</p>
+        </div>
+        <a href="{% url 'lead_create' %}" class="btn btn-success">+ Yeni Lead Ekle</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Filter Sidebar -->
+    <div class="col-md-3">
+        <div class="card bg-light mb-3">
+            <div class="card-header">Filtrele</div>
+            <div class="card-body">
+                <form method="get">
+
+                    <!-- Search -->
+                    <div class="mb-3">
+                        <label class="form-label">Arama</label>
+                        <input type="text" name="q" class="form-control" placeholder="İsim, Tel, Email..."
+                            value="{{ search_query }}">
+                    </div>
+
+                    <!-- Follow Up Today -->
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="followUpToday" name="follow_up_today"
+                            value="yes" {% if follow_up_today_active %}checked{% endif %}>
+                        <label class="form-check-label" for="followUpToday">
+                            Bugün Aranacaklar
+                        </label>
+
+                        {% if follow_up_today_active %}
+                        <div class="text-danger fw-bold mt-1">
+                            Bugün aranacaklar
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Contact Source -->
+                    <div class="mb-3">
+                        <label class="form-label">Kaynak</label>
+                        <select name="contact_source" class="form-select">
+                            <option value="">Tümü</option>
+                            {% for code, label in contact_source_choices %}
+                            <option value="{{ code }}" {% if current_contact_source == code %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Lead Stage -->
+                    <div class="mb-3">
+                        <label class="form-label">Durum</label>
+                        <select name="lead_stage" class="form-select">
+                            <option value="">Tümü</option>
+                            {% for code, label in lead_stage_choices %}
+                            <option value="{{ code }}" {% if current_lead_stage == code %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Interest Type -->
+                    <div class="mb-3">
+                        <label class="form-label">İlgi Tipi</label>
+                        <select name="interest_type" class="form-select">
+                            <option value="">Tümü</option>
+                            {% for code, label in interest_type_choices %}
+                            <option value="{{ code }}" {% if current_interest_type == code %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Education -->
+                    <div class="mb-3">
+                        <label class="form-label">Eğitim Durumu</label>
+                        <select name="education_background" class="form-select">
+                            <option value="">Tümü</option>
+                            {% for code, label in education_background_choices %}
+                            <option value="{{ code }}" {% if current_education_background == code %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            Filtrele
+                        </button>
+                        <a href="{% url 'lead_list' %}" class="btn btn-outline-secondary">
+                            Temizle
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>İsim Soyisim</th>
+                                <th>Durum</th>
+                                <th>Telefon</th>
+                                <th>Instagram</th>
+                                <th>Kaynak</th>
+                                <th>Sonraki Arama</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            {% for lead in leads %}
+                            <tr style="cursor: pointer;" onclick="window.location='{% url 'lead_detail' lead.id %}'">
+                                <td class="fw-bold">
+                                    {{ lead.first_name }} {{ lead.last_name }}
+                                </td>
+
+                                <td>
+                                    <span class="badge
+                                        {% if lead.lead_stage == 'new' %}bg-primary
+                                        {% elif lead.lead_stage == 'contacted' %}bg-info
+                                        {% elif lead.lead_stage == 'interested' %}bg-warning text-dark
+                                        {% elif lead.lead_stage == 'converted' %}bg-success
+                                        {% elif lead.lead_stage == 'lost' %}bg-secondary
+                                        {% else %}bg-secondary{% endif %}
+                                    ">
+                                        {{ lead.get_lead_stage_display }}
+                                    </span>
+                                </td>
+
+                                <td>{{ lead.phone|default:"-" }}</td>
+
+                                <td>
+                                    {% if lead.instagram_username %}
+                                    <a href="https://instagram.com/{{ lead.instagram_username }}" target="_blank"
+                                        onclick="event.stopPropagation();">
+                                        @{{ lead.instagram_username }}
+                                    </a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ lead.get_contact_source_display }}</td>
+
+                                <td>
+                                    {% if lead.next_follow_up %}
+                                    <span class="{% if lead.next_follow_up <= today %}text-danger fw-bold{% endif %}">
+                                        {{ lead.next_follow_up|date:"d M Y" }}
+                                    </span>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    <a href="{% url 'lead_update' lead.id %}" class="btn btn-sm btn-outline-warning"
+                                        onclick="event.stopPropagation();">
+                                        Düzenle
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4">
+                                    Kriterlere uygun kayıt bulunamadı.
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card-footer text-muted">
+                Toplam {{ leads.count }} kayıt listelendi.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
