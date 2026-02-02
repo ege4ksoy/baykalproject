@@ -14,7 +14,6 @@
         <div class="card mb-4">
             <div class="card-header">Hızlı İşlemler</div>
             <div class="list-group list-group-flush">
-                <a href="{% url 'person_list' %}" class="list-group-item list-group-item-action">Kişi Listesi</a>
                 <a href="{% url 'training_list' %}" class="list-group-item list-group-item-action">Eğitimler</a>
                 {% if user.is_staff %}
                 <a href="{% url 'reports' %}"

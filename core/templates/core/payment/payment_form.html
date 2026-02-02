@@ -8,7 +8,7 @@
                 <h5>{{ lead.first_name }} {{ lead.last_name }} - Ödeme Ekle</h5>
             </div>
             <div class="card-body">
-                <form method="post">
+                <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
 
                     <div class="mb-3">
@@ -29,6 +29,11 @@
                     <div class="mb-3">
                         <label class="form-label">Ödeme Yöntemi</label>
                         {{ form.payment_method }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Dekont</label>
+                        {{ form.receipt_file }}
                     </div>
 
                     <div class="mb-3">

@@ -11,7 +11,7 @@ from django.db.models import Q
 
 # ============= LEAD VIEWS =============
 
-@staff_member_required
+@login_required
 def lead_list(request):
     # Base queryset
     leads = Lead.objects.all().order_by('-created_at')
@@ -44,7 +44,7 @@ def lead_list(request):
     
     return render(request, 'core/lead/lead_list.html', context)
 
-@staff_member_required
+@login_required
 def lead_create(request):
     if request.method == 'POST':
         form = LeadForm(request.POST)
@@ -55,7 +55,7 @@ def lead_create(request):
         form = LeadForm()
     return render(request, 'core/lead/lead_form.html', {'form': form, 'title': 'Yeni Lead Ekle'})
 
-@staff_member_required
+@login_required
 def lead_detail(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
     meetings = lead.meeting_set.all().order_by('-meeting_date')
@@ -63,15 +63,23 @@ def lead_detail(request, pk):
     documents = lead.document_set.all().order_by('-uploaded_at')
     payments = lead.payment_set.all().order_by('-payment_date')
     
+    # Calculate totals
+    total_price = sum(e.training_session.price or 0 for e in enrollments if e.training_session)
+    total_paid = payments.aggregate(Sum('amount'))['amount__sum'] or 0
+    balance = total_price - total_paid
+    
     return render(request, 'core/lead/lead_detail.html', {
         'lead': lead,
         'meetings': meetings,
         'enrollments': enrollments,
         'documents': documents,
         'payments': payments,
+        'total_price': total_price,
+        'total_paid': total_paid,
+        'balance': balance,
     })
 
-@staff_member_required
+@login_required
 def lead_update(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
     if request.method == 'POST':
@@ -83,7 +91,7 @@ def lead_update(request, pk):
         form = LeadForm(instance=lead)
     return render(request, 'core/lead/lead_form.html', {'form': form, 'title': 'Lead Düzenle'})
 
-@staff_member_required
+@login_required
 def delete_lead(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
     if request.method == 'POST':
@@ -91,7 +99,7 @@ def delete_lead(request, pk):
         return redirect('lead_list')
     return render(request, 'core/confirm_delete.html', {'object': lead, 'title': 'Lead Sil'})
 
-@staff_member_required
+@login_required
 def convert_lead_to_student(request, lead_id):
     lead = get_object_or_404(Lead, id=lead_id)
     if request.method == "POST":
@@ -100,7 +108,7 @@ def convert_lead_to_student(request, lead_id):
 
 # ============= LEAD RELATED VIEWS =============
 
-@staff_member_required
+@login_required
 def add_enrollment_to_lead(request, lead_id):
     lead = get_object_or_404(Lead, pk=lead_id)
     if request.method == 'POST':
@@ -114,7 +122,7 @@ def add_enrollment_to_lead(request, lead_id):
         form = EnrollmentForm()
     return render(request, 'core/enrollment/enrollment_form.html', {'form': form, 'lead': lead})
 
-@staff_member_required
+@login_required
 def add_document_to_lead(request, lead_id):
     lead = get_object_or_404(Lead, pk=lead_id)
     if request.method == 'POST':
@@ -128,11 +136,11 @@ def add_document_to_lead(request, lead_id):
         form = DocumentForm()
     return render(request, 'core/document/document_form.html', {'form': form, 'lead': lead})
 
-@staff_member_required
+@login_required
 def add_payment_to_lead(request, lead_id):
     lead = get_object_or_404(Lead, pk=lead_id)
     if request.method == 'POST':
-        form = PaymentForm(request.POST)
+        form = PaymentForm(request.POST, request.FILES)
         if form.is_valid():
             payment = form.save(commit=False)
             payment.lead = lead
@@ -142,7 +150,7 @@ def add_payment_to_lead(request, lead_id):
         form = PaymentForm()
     return render(request, 'core/payment/payment_form.html', {'form': form, 'lead': lead})
 
-@staff_member_required
+@login_required
 def meeting_create(request, lead_id):
     lead = get_object_or_404(Lead, pk=lead_id)
     if request.method == 'POST':
@@ -157,7 +165,7 @@ def meeting_create(request, lead_id):
         form = MeetingForm()
     return render(request, 'core/meeting/meeting_form.html', {'form': form, 'lead': lead})
 
-@staff_member_required
+@login_required
 def meeting_update(request, pk):
     meeting = get_object_or_404(Meeting, pk=pk)
     if request.method == 'POST':
@@ -169,7 +177,7 @@ def meeting_update(request, pk):
         form = MeetingForm(instance=meeting)
     return render(request, 'core/meeting/meeting_form.html', {'form': form, 'lead': meeting.lead})
 
-@staff_member_required
+@login_required
 def delete_meeting(request, pk):
     meeting = get_object_or_404(Meeting, pk=pk)
     lead_id = meeting.lead.id
@@ -178,7 +186,7 @@ def delete_meeting(request, pk):
         return redirect('lead_detail', pk=lead_id)
     return render(request, 'core/confirm_delete.html', {'object': meeting, 'title': 'Toplantı Sil'})
 
-@staff_member_required
+@login_required
 def enrollment_update(request, pk):
     enrollment = get_object_or_404(Enrollment, pk=pk)
     if request.method == 'POST':
@@ -190,7 +198,7 @@ def enrollment_update(request, pk):
         form = EnrollmentForm(instance=enrollment)
     return render(request, 'core/enrollment/enrollment_form.html', {'form': form, 'lead': enrollment.lead})
 
-@staff_member_required
+@login_required
 def delete_enrollment(request, pk):
     enrollment = get_object_or_404(Enrollment, pk=pk)
     lead_id = enrollment.lead.id
@@ -199,7 +207,7 @@ def delete_enrollment(request, pk):
         return redirect('lead_detail', pk=lead_id)
     return render(request, 'core/confirm_delete.html', {'object': enrollment, 'title': 'Kayıt Sil'})
 
-@staff_member_required
+@login_required
 def delete_document(request, pk):
     document = get_object_or_404(Document, pk=pk)
     lead_id = document.lead.id
@@ -208,7 +216,7 @@ def delete_document(request, pk):
         return redirect('lead_detail', pk=lead_id)
     return render(request, 'core/confirm_delete.html', {'object': document, 'title': 'Belge Sil'})
 
-@staff_member_required
+@login_required
 def delete_payment(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     lead_id = payment.lead.id
@@ -231,7 +239,7 @@ def training_detail(request, pk):
     training = get_object_or_404(Training, pk=pk)
     return render(request, 'core/training/training_detail.html', {'training': training})
 
-@staff_member_required
+@login_required
 def training_create(request):
     if request.method == 'POST':
         form = TrainingForm(request.POST)
@@ -242,7 +250,7 @@ def training_create(request):
         form = TrainingForm()
     return render(request, 'core/training/training_form.html', {'form': form, 'title': 'Yeni Eğitim Ekle'})
 
-@staff_member_required
+@login_required
 def training_update(request, pk):
     training = get_object_or_404(Training, pk=pk)
     if request.method == 'POST':
@@ -254,7 +262,7 @@ def training_update(request, pk):
         form = TrainingForm(instance=training)
     return render(request, 'core/training/training_form.html', {'form': form, 'title': 'Eğitim Düzenle'})
 
-@staff_member_required
+@login_required
 def session_create(request, training_id):
     training = get_object_or_404(Training, pk=training_id)
     if request.method == 'POST':
@@ -268,7 +276,7 @@ def session_create(request, training_id):
         form = TrainingSessionForm(initial={'price': 0})
     return render(request, 'core/session/session_form.html', {'form': form, 'training': training})
 
-@staff_member_required
+@login_required
 def session_update(request, pk):
     session = get_object_or_404(TrainingSession, pk=pk)
     if request.method == 'POST':
@@ -291,7 +299,7 @@ def dashboard(request):
     }
     return render(request, 'core/dashboard.html', context)
 
-@staff_member_required
+@login_required
 def reports(request):
     total_revenue = Payment.objects.aggregate(Sum('amount'))['amount__sum'] or 0
     total_students = Lead.objects.filter(lead_stage='converted').count()
@@ -333,7 +341,7 @@ def person_create(request):
         form = PersonForm()
     return render(request, 'core/person/person_form.html', {'form': form, 'title': 'Yeni Kişi Ekle'})
 
-@staff_member_required
+@login_required
 def person_update(request, pk):
     person = get_object_or_404(Person, pk=pk)
     if request.method == 'POST':
@@ -345,7 +353,7 @@ def person_update(request, pk):
         form = PersonForm(instance=person)
     return render(request, 'core/person/person_form.html', {'form': form, 'title': 'Kişi Düzenle'})
 
-@staff_member_required
+@login_required
 def delete_person(request, pk):
     person = get_object_or_404(Person, pk=pk)
     if request.method == 'POST':

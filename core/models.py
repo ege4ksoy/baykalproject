@@ -35,14 +35,13 @@ class TrainingSession(models.Model):
 
 class Enrollment(models.Model):
     STATUS_CHOICES = [
-        ('potential', 'Potansiyel'),
         ('enrolled', 'Kayıtlı'),
         ('completed', 'Tamamladı'),
         ('dropped', 'Bıraktı'),
     ]
     lead = models.ForeignKey('Lead', on_delete=models.CASCADE, null=True, blank=True)
     training_session = models.ForeignKey(TrainingSession, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='potential')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='enrolled')
     enrollment_date = models.DateTimeField(auto_now_add=True)
     attendance_rate = models.IntegerField(blank=True, null=True, help_text="Percentage")
     instructor_note = models.TextField(blank=True, null=True)
@@ -86,6 +85,7 @@ class Payment(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField()
     payment_method = models.CharField(max_length=50, blank=True, null=True)
+    receipt_file = models.FileField(upload_to="receipts/", null=True, blank=True, verbose_name="Dekont")
     note = models.TextField(blank=True, null=True)
 
     def __str__(self):

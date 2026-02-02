@@ -13,7 +13,7 @@ class LeadForm(forms.ModelForm):
         ]
         widgets = {
             'notes': forms.Textarea(attrs={'rows': 3}),
-            'next_follow_up': forms.DateInput(attrs={'type': 'date'}),
+            'next_follow_up': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'interested_trainings': forms.CheckboxSelectMultiple(),
             'potential_trainings': forms.CheckboxSelectMultiple(),
             'previous_trainings': forms.CheckboxSelectMultiple(),
@@ -32,10 +32,10 @@ class MeetingForm(forms.ModelForm):
         model = Meeting
         fields = ['meeting_date', 'summary', 'private_note', 'follow_up_date']
         widgets = {
-            'meeting_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'meeting_date': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
             'summary': forms.Textarea(attrs={'rows': 3}),
             'private_note': forms.Textarea(attrs={'rows': 3}),
-            'follow_up_date': forms.DateInput(attrs={'type': 'date'}),
+            'follow_up_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
 
 class TrainingForm(forms.ModelForm):
@@ -51,8 +51,8 @@ class TrainingSessionForm(forms.ModelForm):
         model = TrainingSession
         fields = ['start_date', 'end_date', 'instructor', 'price']
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'start_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'end_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
 
 class EnrollmentForm(forms.ModelForm):
@@ -74,8 +74,8 @@ class DocumentForm(forms.ModelForm):
 class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
-        fields = ['training_session', 'amount', 'payment_date', 'payment_method', 'note']
+        fields = ['training_session', 'amount', 'payment_date', 'payment_method', 'receipt_file', 'note']
         widgets = {
-            'payment_date': forms.DateInput(attrs={'type': 'date'}),
+            'payment_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
             'note': forms.Textarea(attrs={'rows': 3}),
         }

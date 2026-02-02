@@ -42,6 +42,7 @@
                 <li class="list-group-item"><strong>Eğitim Durumu:</strong> {{ lead.get_education_background_display }}
                 </li>
                 <li class="list-group-item"><strong>İlgi:</strong> {{ lead.get_interest_type_display }}</li>
+                <li class="list-group-item"><strong>Kayıt Tarihi:</strong> {{ lead.created_at|date:"d M Y H:i" }}</li>
             </ul>
         </div>
 
@@ -59,6 +60,26 @@
                     {{ lead.notes|linebreaks|default:"-" }}
                 </p>
             </div>
+        </div>
+
+        <!-- Finansal Özet -->
+        <div class="card mb-4">
+            <div class="card-header">Finansal Özet</div>
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Toplam Eğitim Ücreti:</span>
+                    <strong>{{ total_price }} ₺</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Ödenen:</span>
+                    <strong class="text-success">{{ total_paid }} ₺</strong>
+                </li>
+                <li class="list-group-item d-flex justify-content-between">
+                    <span>Kalan Bakiye:</span>
+                    <strong class="{% if balance > 0 %}text-danger{% else %}text-success{% endif %}">{{ balance }}
+                        ₺</strong>
+                </li>
+            </ul>
         </div>
     </div>
 
@@ -149,6 +170,7 @@
                     <thead>
                         <tr>
                             <th>Eğitim</th>
+                            <th>Fiyat</th>
                             <th>Durum</th>
                             <th>Kayıt Tarihi</th>
                             <th>İşlem</th>
@@ -158,6 +180,8 @@
                         {% for enrollment in enrollments %}
                         <tr>
                             <td>{{ enrollment.training_session.training.name }}</td>
+                            <td>{% if enrollment.training_session.price %}{{ enrollment.training_session.price }}
+                                ₺{% else %}-{% endif %}</td>
                             <td><span class="badge bg-info">{{ enrollment.get_status_display }}</span></td>
                             <td>{{ enrollment.enrollment_date|date:"d M Y" }}</td>
                             <td>
@@ -227,6 +251,7 @@
                             <th>Tutar</th>
                             <th>Tarih</th>
                             <th>Yöntem</th>
+                            <th>Dekont</th>
                             <th>Not</th>
                             <th>İşlem</th>
                         </tr>
@@ -237,6 +262,8 @@
                             <td>{{ payment.amount }} TL</td>
                             <td>{{ payment.payment_date|date:"d M Y" }}</td>
                             <td>{{ payment.payment_method|default:"-" }}</td>
+                            <td>{% if payment.receipt_file %}<a href="{{ payment.receipt_file.url }}" target="_blank"
+                                    class="btn btn-sm btn-outline-info py-0">Görüntüle</a>{% else %}-{% endif %}</td>
                             <td>{{ payment.note|default:"-"|truncatewords:5 }}</td>
                             <td>
                                 <a href="{% url 'delete_payment' payment.id %}"
