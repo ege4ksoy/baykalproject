@@ -93,32 +93,55 @@
                         </select>
                     </div>
 
-                    <!-- Interested Training -->
+                    <!-- Interested Training (Multi-select) -->
                     <div class="mb-3">
-                        <label class="form-label">İlgilendiği Eğitim</label>
-                        <select name="interested_training" class="form-select">
-                            <option value="">Tümü</option>
+                        <label class="form-label">İlgilendiği Eğitimler</label>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
                             {% for training in trainings %}
-                            <option value="{{ training.id }}"
-                                    {% if current_interested_training == training.id|stringformat:"s" %}selected{% endif %}>
-                                {{ training.name }}
-                            </option>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="interested_training"
+                                    value="{{ training.id }}" id="interested_{{ training.id }}"
+                                       {% if training.id|stringformat:"s" in selected_interested_trainings %}checked{% endif %}>
+                                <label class="form-check-label" for="interested_{{ training.id }}">
+                                    {{ training.name }}
+                                </label>
+                            </div>
                             {% endfor %}
-                        </select>
+                        </div>
                     </div>
 
-                    <!-- Potential Training -->
+                    <!-- Potential Training (Multi-select) -->
                     <div class="mb-3">
-                        <label class="form-label">Potansiyel Eğitim</label>
-                        <select name="potential_training" class="form-select">
-                            <option value="">Tümü</option>
+                        <label class="form-label">Potansiyel Eğitimler</label>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
                             {% for training in trainings %}
-                            <option value="{{ training.id }}"
-                                    {% if current_potential_training == training.id|stringformat:"s" %}selected{% endif %}>
-                                {{ training.name }}
-                            </option>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="potential_training"
+                                    value="{{ training.id }}" id="potential_{{ training.id }}"
+                                       {% if training.id|stringformat:"s" in selected_potential_trainings %}checked{% endif %}>
+                                <label class="form-check-label" for="potential_{{ training.id }}">
+                                    {{ training.name }}
+                                </label>
+                            </div>
                             {% endfor %}
-                        </select>
+                        </div>
+                    </div>
+
+                    <!-- Previous Training (Multi-select) -->
+                    <div class="mb-3">
+                        <label class="form-label">Aldığı Eğitimler</label>
+                        <div class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                            {% for training in trainings %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="previous_training"
+                                    value="{{ training.id }}" id="previous_{{ training.id }}" ,
+                                       {% if training.id|stringformat:"s" in selected_previous_trainings %}checked{% endif %}>
+                                <label class="form-check-label" for="previous_{{ training.id }}">
+                                    {{ training.name }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
 
                     <!-- Profession -->
@@ -170,12 +193,9 @@
 
                                 <td>
                                     <span class="badge
-                                        {% if lead.lead_stage == 'new' %}bg-primary
-                                        {% elif lead.lead_stage == 'contacted' %}bg-info
-                                        {% elif lead.lead_stage == 'interested' %}bg-warning text-dark
-                                        {% elif lead.lead_stage == 'converted' %}bg-success
+                                        {% if lead.lead_stage == 'converted' %}bg-success
                                         {% elif lead.lead_stage == 'lost' %}bg-secondary
-                                        {% else %}bg-secondary{% endif %}
+                                        {% else %}bg-info{% endif %}
                                     ">
                                         {{ lead.get_lead_stage_display }}
                                     </span>
@@ -186,8 +206,7 @@
                                 <td>
                                     {% if lead.email %}
                                     <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ lead.email }}"
-                                       target="_blank"
-                                       onclick="event.stopPropagation();">
+                                        target="_blank" onclick="event.stopPropagation();">
                                         {{ lead.email }}
                                     </a>
                                     {% else %}

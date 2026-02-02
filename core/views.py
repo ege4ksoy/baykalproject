@@ -35,11 +35,14 @@ def lead_list(request):
         'current_education_background': request.GET.get('education_background', ''),
         'current_interest_type': request.GET.get('interest_type', ''),
         'current_follow_up_today': request.GET.get('follow_up_today', ''),
-        'current_interested_training': request.GET.get('interested_training', ''),
-        'current_potential_training': request.GET.get('potential_training', ''),
         'current_profession': request.GET.get('profession', ''),
         'today': date.today(),
         "follow_up_today_active": request.GET.get("follow_up_today") == "yes",
+        
+        # Multi-select training filters
+        'selected_interested_trainings': request.GET.getlist('interested_training'),
+        'selected_potential_trainings': request.GET.getlist('potential_training'),
+        'selected_previous_trainings': request.GET.getlist('previous_training'),
     }
     
     return render(request, 'core/lead/lead_list.html', context)

@@ -44,14 +44,21 @@ class LeadQueryService:
         if interest_type:
             queryset = queryset.filter(interest_type=interest_type)
 
-        # 3. ManyToMany Filters
-        interested_training = params.get('interested_training')
-        if interested_training:
-            queryset = queryset.filter(interested_trainings__id=interested_training)
+        # 3. ManyToMany Filters (Multi-select with AND logic)
+        interested_trainings = params.getlist('interested_training')
+        if interested_trainings:
+            for training_id in interested_trainings:
+                queryset = queryset.filter(interested_trainings__id=training_id)
 
-        potential_training = params.get('potential_training')
-        if potential_training:
-            queryset = queryset.filter(potential_trainings__id=potential_training)
+        potential_trainings = params.getlist('potential_training')
+        if potential_trainings:
+            for training_id in potential_trainings:
+                queryset = queryset.filter(potential_trainings__id=training_id)
+
+        previous_trainings = params.getlist('previous_training')
+        if previous_trainings:
+            for training_id in previous_trainings:
+                queryset = queryset.filter(previous_trainings__id=training_id)
 
         # 4. Profession Filter (text search)
         profession = params.get('profession')
@@ -64,7 +71,7 @@ class LeadQueryService:
             today = timezone.now().date()
             queryset = queryset.filter(next_follow_up=today)
 
-        return queryset
+        return queryset.distinct()
     
     @staticmethod
     def convert_to_student(lead: Lead):
