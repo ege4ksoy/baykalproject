@@ -1,6 +1,6 @@
 from django.db.models import Q
 from django.utils import timezone
-from .models import Lead
+from .models import Lead, Person
 
 class LeadQueryService:
     @staticmethod
@@ -51,3 +51,25 @@ class LeadQueryService:
             queryset = queryset.filter(next_follow_up=today)
 
         return queryset
+    
+    @staticmethod
+    def convert(lead: Lead, user):
+        if lead.converted_person:
+            return lead.converted_person  # tekrar dönüştürme yok
+
+        person = Person.objects.create(
+            first_name=lead.first_name,
+            last_name=lead.last_name,
+            email=lead.email,
+            phone=lead.phone,
+            city=lead.city,
+            notes=lead.notes,
+        )
+
+        lead.converted_person = person
+        lead.converted_at = timezone.now()
+        lead.converted_by = user
+        lead.lead_stage = "converted"
+        lead.save()
+
+        return person

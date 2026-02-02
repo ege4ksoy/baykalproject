@@ -127,11 +127,9 @@ class Lead(models.Model):
     # Kimlik
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100, blank=True)
-
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
-
     instagram_username = models.CharField(max_length=100, blank=True, null=True)
     profession = models.CharField(max_length=150, blank=True, null=True)
 
@@ -139,9 +137,7 @@ class Lead(models.Model):
     contact_source = models.CharField(max_length=20, choices=CONTACT_SOURCE_CHOICES)
     education_background = models.CharField(max_length=20, choices=EDUCATION_BACKGROUND_CHOICES)
     interest_type = models.CharField(max_length=20, choices=INTEREST_TYPE_CHOICES)
-
     lead_stage = models.CharField(max_length=20, choices=LEAD_STAGE_CHOICES, default='new')
-
     next_follow_up = models.DateField(null=True, blank=True)
 
     # Görüşme özetleri
@@ -156,22 +152,34 @@ class Lead(models.Model):
         User, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="lead_second_meetings"
     )
-
     last_contact_date = models.DateTimeField(null=True, blank=True)
 
     # Eğitim ilgileri
     interested_trainings = models.ManyToManyField(
         "Training", related_name="interested_leads", blank=True
     )
-
     potential_trainings = models.ManyToManyField(
         "Training", related_name="potential_leads", blank=True
     )
-
     notes = models.TextField(blank=True, null=True)
-
     created_at = models.DateTimeField(auto_now_add=True)
 
+    converted_person = models.OneToOneField(
+        "Person",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="source_lead"
+    )
+    converted_at = models.DateTimeField(null=True, blank=True)
+    converted_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="converted_leads"
+    )
+    
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 

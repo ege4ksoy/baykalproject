@@ -357,3 +357,11 @@ def delete_document(request, pk):
         return redirect('person_detail', pk=person_id)
     return render(request, 'core/confirm_delete.html', {'object': document, 'title': 'Belge Sil'})
 
+@staff_member_required
+def convert_lead_to_person(request, lead_id):
+    lead = get_object_or_404(Lead, id=lead_id)
+
+    if request.method == "POST":
+        LeadQueryService.convert(lead, request.user)
+
+    return redirect("lead_list")

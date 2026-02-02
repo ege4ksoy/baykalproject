@@ -4,8 +4,20 @@
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h3>{{ title }}</h3>
+                {% if form.instance.pk %}
+                {% if not form.instance.converted_person %}
+                <form method="post" action="{% url 'lead_convert' form.instance.id %}">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-success" type="submit">
+                        Person’a Dönüştür
+                    </button>
+                </form>
+                {% else %}
+                <span class="badge bg-success">Dönüştürüldü</span>
+                {% endif %}
+                {% endif %}
             </div>
             <div class="card-body">
                 <form method="post">
