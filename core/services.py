@@ -1,6 +1,6 @@
 from django.db.models import Q
 from django.utils import timezone
-from .models import Lead, Person
+from .models import Lead
 
 class LeadQueryService:
     @staticmethod
@@ -44,7 +44,21 @@ class LeadQueryService:
         if interest_type:
             queryset = queryset.filter(interest_type=interest_type)
 
-        # 3. Special Filters
+        # 3. ManyToMany Filters
+        interested_training = params.get('interested_training')
+        if interested_training:
+            queryset = queryset.filter(interested_trainings__id=interested_training)
+
+        potential_training = params.get('potential_training')
+        if potential_training:
+            queryset = queryset.filter(potential_trainings__id=potential_training)
+
+        # 4. Profession Filter (text search)
+        profession = params.get('profession')
+        if profession:
+            queryset = queryset.filter(profession__icontains=profession)
+
+        # 5. Special Filters
         follow_up_today = params.get('follow_up_today')
         if follow_up_today == 'yes':
             today = timezone.now().date()
@@ -53,23 +67,11 @@ class LeadQueryService:
         return queryset
     
     @staticmethod
-    def convert(lead: Lead, user):
-        if lead.converted_person:
-            return lead.converted_person  # tekrar dönüştürme yok
-
-        person = Person.objects.create(
-            first_name=lead.first_name,
-            last_name=lead.last_name,
-            email=lead.email,
-            phone=lead.phone,
-            city=lead.city,
-            notes=lead.notes,
-        )
-
-        lead.converted_person = person
-        lead.converted_at = timezone.now()
-        lead.converted_by = user
+    def convert_to_student(lead: Lead):
+        """Lead'i öğrenci statüsüne dönüştür"""
+        if lead.lead_stage == 'converted':
+            return lead  # zaten dönüştürülmüş
+        
         lead.lead_stage = "converted"
         lead.save()
-
-        return person
+        return lead

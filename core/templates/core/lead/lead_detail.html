@@ -5,10 +5,22 @@
     <div class="col-md-8">
         <h1>
             {{ lead.first_name }} {{ lead.last_name }}
-            <span class="badge bg-secondary fs-6 align-middle">{{ lead.get_lead_stage_display }}</span>
+            <span class="badge 
+                {% if lead.lead_stage == 'converted' %}bg-success
+                {% elif lead.lead_stage == 'new' %}bg-primary
+                {% elif lead.lead_stage == 'interested' %}bg-warning text-dark
+                {% elif lead.lead_stage == 'lost' %}bg-secondary
+                {% else %}bg-info{% endif %} 
+                fs-6 align-middle">{{ lead.get_lead_stage_display }}</span>
         </h1>
     </div>
     <div class="col-md-4 text-end">
+        {% if lead.lead_stage != 'converted' %}
+        <form method="post" action="{% url 'lead_convert' lead.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-success">Kayıta Dönüştür</button>
+        </form>
+        {% endif %}
         <a href="{% url 'lead_update' lead.pk %}" class="btn btn-warning">Düzenle</a>
         <a href="{% url 'lead_list' %}" class="btn btn-outline-secondary">Listeye Dön</a>
     </div>
@@ -24,9 +36,11 @@
                 <li class="list-group-item"><strong>Email:</strong> {{ lead.email|default:"-" }}</li>
                 <li class="list-group-item"><strong>Instagram:</strong> {{ lead.instagram_username|default:"-" }}</li>
                 <li class="list-group-item"><strong>Şehir:</strong> {{ lead.city|default:"-" }}</li>
+                <li class="list-group-item"><strong>İlçe:</strong> {{ lead.district|default:"-" }}</li>
                 <li class="list-group-item"><strong>Meslek:</strong> {{ lead.profession|default:"-" }}</li>
                 <li class="list-group-item"><strong>Kaynak:</strong> {{ lead.get_contact_source_display }}</li>
-                <li class="list-group-item"><strong>Eğitim:</strong> {{ lead.get_education_background_display }}</li>
+                <li class="list-group-item"><strong>Eğitim Durumu:</strong> {{ lead.get_education_background_display }}
+                </li>
                 <li class="list-group-item"><strong>İlgi:</strong> {{ lead.get_interest_type_display }}</li>
             </ul>
         </div>
@@ -48,15 +62,15 @@
         </div>
     </div>
 
-    <!-- Right Column: Meetings & Trainings -->
+    <!-- Right Column: Trainings, Enrollments, Documents, Payments, Meetings -->
     <div class="col-md-8">
 
         <!-- Trainings -->
         <div class="card mb-4">
-            <div class="card-header">İlgilendiği Eğitimler</div>
+            <div class="card-header">Eğitim İlgileri</div>
             <div class="card-body">
                 {% if lead.interested_trainings.all %}
-                <p><strong>İlgili:</strong>
+                <p><strong>İlgilendiği:</strong>
                     {% for t in lead.interested_trainings.all %}
                     <span class="badge bg-primary">{{ t.name }}</span>
                     {% endfor %}
@@ -71,14 +85,22 @@
                 </p>
                 {% endif %}
 
-                {% if not lead.interested_trainings.all and not lead.potential_trainings.all %}
+                {% if lead.previous_trainings.all %}
+                <p><strong>Daha Önce Aldığı:</strong>
+                    {% for t in lead.previous_trainings.all %}
+                    <span class="badge bg-success">{{ t.name }}</span>
+                    {% endfor %}
+                </p>
+                {% endif %}
+
+                {% if not lead.interested_trainings.all and not lead.potential_trainings.all and not lead.previous_trainings.all %}
                 <p class="text-muted">Eğitim bilgisi girilmemiş.</p>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Meetings -->
-        <div class="card">
+        <!-- Meetings (Görüşmeler) -->
+        <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span>Görüşme Geçmişi</span>
                 <a href="{% url 'meeting_create' lead.id %}" class="btn btn-sm btn-success">+ Görüşme Ekle</a>
@@ -104,9 +126,128 @@
                         </div>
                     </div>
                     {% endfor %}
+
                 </div>
                 {% else %}
                 <p class="text-center text-muted my-3">Henüz görüşme kaydı yok.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Enrollments (Kayıtlı Eğitimler) -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Kayıtlı Eğitimler</span>
+                {% if lead.lead_stage == 'converted' %}
+                <a href="{% url 'add_enrollment_to_lead' lead.id %}" class="btn btn-sm btn-success">+ Eğitim Ekle</a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if enrollments %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Eğitim</th>
+                            <th>Durum</th>
+                            <th>Kayıt Tarihi</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in enrollments %}
+                        <tr>
+                            <td>{{ enrollment.training_session.training.name }}</td>
+                            <td><span class="badge bg-info">{{ enrollment.get_status_display }}</span></td>
+                            <td>{{ enrollment.enrollment_date|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'enrollment_update' enrollment.id %}"
+                                    class="btn btn-sm btn-outline-primary py-0">Düzenle</a>
+                                <a href="{% url 'delete_enrollment' enrollment.id %}"
+                                    class="btn btn-sm btn-outline-danger py-0">Sil</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-center text-muted my-3">Henüz kayıtlı eğitim yok.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Documents (Belgeler) -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Belgeler</span>
+                <a href="{% url 'add_document_to_lead' lead.id %}" class="btn btn-sm btn-success">+ Belge Ekle</a>
+            </div>
+            <div class="card-body">
+                {% if documents %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Tür</th>
+                            <th>Dosya</th>
+                            <th>Yükleme Tarihi</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in documents %}
+                        <tr>
+                            <td>{{ doc.get_document_type_display }}</td>
+                            <td><a href="{{ doc.file.url }}" target="_blank">{{ doc.file.name }}</a></td>
+                            <td>{{ doc.uploaded_at|date:"d M Y" }}</td>
+                            <td>
+                                <a href="{% url 'delete_document' doc.id %}"
+                                    class="btn btn-sm btn-outline-danger py-0">Sil</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-center text-muted my-3">Henüz belge yok.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Payments (Ödemeler) -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Ödemeler</span>
+                <a href="{% url 'add_payment_to_lead' lead.id %}" class="btn btn-sm btn-success">+ Ödeme Ekle</a>
+            </div>
+            <div class="card-body">
+                {% if payments %}
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Tutar</th>
+                            <th>Tarih</th>
+                            <th>Yöntem</th>
+                            <th>Not</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.amount }} TL</td>
+                            <td>{{ payment.payment_date|date:"d M Y" }}</td>
+                            <td>{{ payment.payment_method|default:"-" }}</td>
+                            <td>{{ payment.note|default:"-"|truncatewords:5 }}</td>
+                            <td>
+                                <a href="{% url 'delete_payment' payment.id %}"
+                                    class="btn btn-sm btn-outline-danger py-0">Sil</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-center text-muted my-3">Henüz ödeme kaydı yok.</p>
                 {% endif %}
             </div>
         </div>

@@ -93,6 +93,41 @@
                         </select>
                     </div>
 
+                    <!-- Interested Training -->
+                    <div class="mb-3">
+                        <label class="form-label">İlgilendiği Eğitim</label>
+                        <select name="interested_training" class="form-select">
+                            <option value="">Tümü</option>
+                            {% for training in trainings %}
+                            <option value="{{ training.id }}"
+                                    {% if current_interested_training == training.id|stringformat:"s" %}selected{% endif %}>
+                                {{ training.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Potential Training -->
+                    <div class="mb-3">
+                        <label class="form-label">Potansiyel Eğitim</label>
+                        <select name="potential_training" class="form-select">
+                            <option value="">Tümü</option>
+                            {% for training in trainings %}
+                            <option value="{{ training.id }}"
+                                    {% if current_potential_training == training.id|stringformat:"s" %}selected{% endif %}>
+                                {{ training.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Profession -->
+                    <div class="mb-3">
+                        <label class="form-label">Meslek</label>
+                        <input type="text" name="profession" class="form-control" placeholder="Meslek ara..."
+                            value="{{ current_profession }}">
+                    </div>
+
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">
                             Filtrele
@@ -118,6 +153,7 @@
                                 <th>İsim Soyisim</th>
                                 <th>Durum</th>
                                 <th>Telefon</th>
+                                <th>Email</th>
                                 <th>Instagram</th>
                                 <th>Kaynak</th>
                                 <th>Sonraki Arama</th>
@@ -148,6 +184,18 @@
                                 <td>{{ lead.phone|default:"-" }}</td>
 
                                 <td>
+                                    {% if lead.email %}
+                                    <a href="https://mail.google.com/mail/?view=cm&fs=1&to={{ lead.email }}"
+                                       target="_blank"
+                                       onclick="event.stopPropagation();">
+                                        {{ lead.email }}
+                                    </a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+
+                                <td>
                                     {% if lead.instagram_username %}
                                     <a href="https://instagram.com/{{ lead.instagram_username }}" target="_blank"
                                         onclick="event.stopPropagation();">
@@ -175,11 +223,15 @@
                                         onclick="event.stopPropagation();">
                                         Düzenle
                                     </a>
+                                    <a href="{% url 'delete_lead' lead.id %}" class="btn btn-sm btn-outline-danger"
+                                        onclick="event.stopPropagation();">
+                                        Sil
+                                    </a>
                                 </td>
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="7" class="text-center py-4">
+                                <td colspan="8" class="text-center py-4">
                                     Kriterlere uygun kayıt bulunamadı.
                                 </td>
                             </tr>

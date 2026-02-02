@@ -40,7 +40,7 @@ class Enrollment(models.Model):
         ('completed', 'Tamamladı'),
         ('dropped', 'Bıraktı'),
     ]
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+    lead = models.ForeignKey('Lead', on_delete=models.CASCADE, null=True, blank=True)
     training_session = models.ForeignKey(TrainingSession, on_delete=models.CASCADE)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='potential')
     enrollment_date = models.DateTimeField(auto_now_add=True)
@@ -48,7 +48,7 @@ class Enrollment(models.Model):
     instructor_note = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.person} - {self.training_session}"
+        return f"{self.lead} - {self.training_session}"
 
 class Meeting(models.Model):
     lead = models.ForeignKey('Lead', on_delete=models.CASCADE, null=True)
@@ -70,7 +70,7 @@ class Document(models.Model):
         ('photo', 'Fotoğraf'),
         ('other', 'Diğer'),
     ]
-    person = models.ForeignKey(Person, on_delete=models.CASCADE, null=True, blank=True)
+    lead = models.ForeignKey('Lead', on_delete=models.CASCADE, null=True, blank=True)
     enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE, null=True, blank=True)
     document_type = models.CharField(max_length=30, choices=DOCUMENT_TYPES)
     file = models.FileField(upload_to="documents/")
@@ -81,7 +81,7 @@ class Document(models.Model):
         return f"{self.document_type} - {self.file.name}"
 
 class Payment(models.Model):
-    person = models.ForeignKey(Person, on_delete=models.CASCADE)
+    lead = models.ForeignKey('Lead', on_delete=models.CASCADE, null=True, blank=True)
     training_session = models.ForeignKey(TrainingSession, on_delete=models.CASCADE, null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField()
@@ -89,7 +89,7 @@ class Payment(models.Model):
     note = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f"{self.person} - {self.amount}"
+        return f"{self.lead} - {self.amount}"
 
 
 class Lead(models.Model):
@@ -98,6 +98,7 @@ class Lead(models.Model):
         ('instagram', 'Instagram'),
         ('website', 'Web Sitesi'),
         ('phone', 'Telefon'),
+        ('whatsapp', 'Whatsapp'),
         ('email', 'E-posta'),
         ('reference', 'Referans'),
     ]
@@ -130,6 +131,7 @@ class Lead(models.Model):
     email = models.EmailField(blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     city = models.CharField(max_length=100, blank=True, null=True)
+    district = models.CharField(max_length=100, blank=True, null=True)
     instagram_username = models.CharField(max_length=100, blank=True, null=True)
     profession = models.CharField(max_length=150, blank=True, null=True)
 
@@ -161,25 +163,13 @@ class Lead(models.Model):
     potential_trainings = models.ManyToManyField(
         "Training", related_name="potential_leads", blank=True
     )
+    previous_trainings = models.ManyToManyField(
+        "Training", related_name="previous_leads", blank=True
+    )
     notes = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-
-    converted_person = models.OneToOneField(
-        "Person",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="source_lead"
-    )
-    converted_at = models.DateTimeField(null=True, blank=True)
-    converted_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="converted_leads"
-    )
     
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
 

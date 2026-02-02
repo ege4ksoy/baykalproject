@@ -7,15 +7,15 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3>{{ title }}</h3>
                 {% if form.instance.pk %}
-                {% if not form.instance.converted_person %}
+                {% if form.instance.lead_stage != 'converted' %}
                 <form method="post" action="{% url 'lead_convert' form.instance.id %}">
                     {% csrf_token %}
                     <button class="btn btn-sm btn-success" type="submit">
-                        Person’a Dönüştür
+                        Kayıta Dönüştür
                     </button>
                 </form>
                 {% else %}
-                <span class="badge bg-success">Dönüştürüldü</span>
+                <span class="badge bg-success">Kayıta Dönüştürüldü</span>
                 {% endif %}
                 {% endif %}
             </div>
@@ -44,6 +44,10 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Şehir</label>
                             {{ form.city }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">İlçe</label>
+                            {{ form.district }}
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Instagram</label>
@@ -87,6 +91,10 @@
                     <div class="mb-3">
                         <label class="form-label">Potansiyel Eğitimler</label>
                         {{ form.potential_trainings }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Daha Önce Aldığı Eğitimler</label>
+                        {{ form.previous_trainings }}
                     </div>
 
                     <div class="mb-3">

@@ -1,0 +1,60 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>{{ lead.first_name }} {{ lead.last_name }} - Ödeme Ekle</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label">Eğitim (Opsiyonel)</label>
+                        {{ form.training_session }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tutar (TL)</label>
+                        {{ form.amount }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ödeme Tarihi</label>
+                        {{ form.payment_date }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ödeme Yöntemi</label>
+                        {{ form.payment_method }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Not</label>
+                        {{ form.note }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                        <a href="{% url 'lead_detail' lead.id %}" class="btn btn-secondary">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('input, select, textarea').forEach(function (input) {
+        if (input.type !== 'checkbox' && input.type !== 'radio') {
+            input.classList.add('form-control');
+            if (input.tagName === 'SELECT') {
+                input.classList.add('form-select');
+                input.classList.remove('form-control');
+            }
+        }
+    });
+</script>
+{% endblock %}

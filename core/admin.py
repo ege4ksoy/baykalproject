@@ -22,9 +22,9 @@ class TrainingSessionAdmin(admin.ModelAdmin):
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
-    list_display = ('person', 'training_session', 'status', 'enrollment_date')
+    list_display = ('lead', 'training_session', 'status', 'enrollment_date')
     list_filter = ('status', 'training_session__start_date')
-    search_fields = ('person__first_name', 'person__last_name', 'training_session__training__name')
+    search_fields = ('lead__first_name', 'lead__last_name', 'training_session__training__name')
 
 @admin.register(Meeting)
 class MeetingAdmin(admin.ModelAdmin):
@@ -34,15 +34,15 @@ class MeetingAdmin(admin.ModelAdmin):
 
 @admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ('person', 'document_type', 'uploaded_at', 'file')
+    list_display = ('lead', 'document_type', 'uploaded_at', 'file')
     list_filter = ('document_type', 'uploaded_at')
-    search_fields = ('person__first_name', 'person__last_name')
+    search_fields = ('lead__first_name', 'lead__last_name')
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('person', 'training_session', 'amount', 'payment_date', 'payment_method')
+    list_display = ('lead', 'training_session', 'amount', 'payment_date', 'payment_method')
     list_filter = ('payment_date', 'payment_method')
-    search_fields = ('person__first_name', 'person__last_name')
+    search_fields = ('lead__first_name', 'lead__last_name')
 
 class FollowUpTodayFilter(admin.SimpleListFilter):
     title = "Bugün aranacaklar"

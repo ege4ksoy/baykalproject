@@ -5,7 +5,7 @@
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h3>Belge Yükle: {{ person.first_name }} {{ person.last_name }}</h3>
+                <h3>Belge Yükle: {{ lead.first_name }} {{ lead.last_name }}</h3>
             </div>
             <div class="card-body">
                 <form method="post" enctype="multipart/form-data">
@@ -24,7 +24,7 @@
                     {% endfor %}
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary">Yükle</button>
-                        <a href="{% url 'person_detail' person.id %}" class="btn btn-secondary">İptal</a>
+                        <a href="{% url 'lead_detail' lead.id %}" class="btn btn-secondary">İptal</a>
                     </div>
                 </form>
             </div>
@@ -33,7 +33,6 @@
 </div>
 
 <script>
-    // Simple script to add Bootstrap classes to form fields
     document.querySelectorAll('input, select, textarea').forEach(function (input) {
         if (input.type !== 'checkbox' && input.type !== 'radio') {
             input.classList.add('form-control');

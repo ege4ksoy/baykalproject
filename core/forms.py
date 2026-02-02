@@ -1,14 +1,14 @@
 from django import forms
-from .models import Document, Enrollment, Training, TrainingSession, Person, Meeting, Lead
+from .models import Document, Enrollment, Training, TrainingSession, Person, Meeting, Lead, Payment
 
 class LeadForm(forms.ModelForm):
     class Meta:
         model = Lead
         fields = [
-            'first_name', 'last_name', 'email', 'phone', 'city', 
+            'first_name', 'last_name', 'email', 'phone', 'city', 'district',
             'instagram_username', 'profession',
             'contact_source', 'education_background', 'interest_type', 'lead_stage',
-            'interested_trainings', 'potential_trainings',
+            'interested_trainings', 'potential_trainings', 'previous_trainings',
             'next_follow_up', 'notes'
         ]
         widgets = {
@@ -16,6 +16,7 @@ class LeadForm(forms.ModelForm):
             'next_follow_up': forms.DateInput(attrs={'type': 'date'}),
             'interested_trainings': forms.CheckboxSelectMultiple(),
             'potential_trainings': forms.CheckboxSelectMultiple(),
+            'previous_trainings': forms.CheckboxSelectMultiple(),
         }
 
 class PersonForm(forms.ModelForm):
@@ -67,5 +68,14 @@ class DocumentForm(forms.ModelForm):
         model = Document
         fields = ['document_type', 'file', 'note']
         widgets = {
+            'note': forms.Textarea(attrs={'rows': 3}),
+        }
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = ['training_session', 'amount', 'payment_date', 'payment_method', 'note']
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date'}),
             'note': forms.Textarea(attrs={'rows': 3}),
         }
